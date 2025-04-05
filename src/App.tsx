@@ -7,6 +7,7 @@ import { Provider as JotaiProvider } from "jotai";
 import ListTokenPage from "./pages/ListTokenPage";
 import { useState } from "react";
 import { TokenData } from "./types";
+import ExplorePage from "./pages/ExplorePage";
 
 export {};
 
@@ -36,6 +37,8 @@ function App() {
               <Navbar />
               <Routes>
                 <Route path="/" element={<HomePage />} />
+                <Route path="/explore" element={<ExplorePage />} />
+
                 <Route
                   path="/list-token"
                   element={
