@@ -4,6 +4,9 @@ import { ToastProvider } from "./hooks/toast";
 import Navbar from "./components/Navbar";
 import WalletProvider from "./utils/WalletProvider";
 import { Provider as JotaiProvider } from "jotai";
+import ListTokenPage from "./pages/ListTokenPage";
+import { useState } from "react";
+import { TokenData } from "./types";
 
 export {};
 
@@ -19,6 +22,11 @@ declare global {
 }
 
 function App() {
+  const [tokenData, setTokenData] = useState<TokenData | null>(null);
+
+  const updateTokenData = (data: TokenData) => {
+    setTokenData(data);
+  };
   return (
     <main>
       <JotaiProvider>
@@ -28,6 +36,15 @@ function App() {
               <Navbar />
               <Routes>
                 <Route path="/" element={<HomePage />} />
+                <Route
+                  path="/list-token"
+                  element={
+                    <ListTokenPage
+                      updateTokenData={updateTokenData}
+                      tokenData={null}
+                    />
+                  }
+                />
               </Routes>
             </BrowserRouter>
           </ToastProvider>
