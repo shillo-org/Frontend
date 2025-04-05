@@ -19,6 +19,7 @@ import {
 } from "../components/stream/socketConnection";
 import { Socket } from "socket.io-client";
 import { usePrivy } from "@privy-io/react-auth";
+import TokenPriceChart from "../components/PriceChart";
 
 const LiveStreamPage: React.FC = () => {
   const { tokenId } = useParams<{ tokenId: string }>();
@@ -488,7 +489,10 @@ const LiveStreamPage: React.FC = () => {
               onLike={handleLike}
               setIsLive={setIsLive}
             />
-
+              <TokenPriceChart
+                tokenId={parseInt(tokenId!)}
+                tokenSymbol={tokenInfo.symbol}
+              />
             <TokenInfoCard
               tokenInfo={tokenInfo}
               onAgentClick={() => setShowAgentModal(true)}
