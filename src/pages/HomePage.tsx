@@ -125,7 +125,7 @@ const HomePage = () => {
                     textShadow: "-6px 6px 0 #1f2024",
                   }}
                 >
-                  SHILL
+                  SH
                 </h1>
                 <div className="flex -mt-[0.5vw]">
                   <h1
@@ -135,7 +135,7 @@ const HomePage = () => {
                       textShadow: "-6px 6px 0 #1f2024",
                     }}
                   >
-                    TU
+                    ILL
                   </h1>
                   <h1
                     className="text-[22vw] relative z-[3] m-0 text-white font-black cursor-pointer hover:text-[#ff55a2] pl-[3px] leading-[0.8]"
@@ -144,7 +144,7 @@ const HomePage = () => {
                       textShadow: "-6px 6px 0 #1f2024",
                     }}
                   >
-                    BE
+                    O
                   </h1>
                 </div>
               </div>
