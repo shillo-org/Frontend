@@ -110,7 +110,7 @@ interface ChatMessageProps {
 // ChatMessage component for cleaner code
 const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const { user, timestamp, text, isAI, isCurrentUser } = message;
-  
+  console.log(user,isAI)
   const getMessageStyle = (): string => {
     if (user === "System") {
       return "bg-gray-800/50 border-l-4 border-gray-500 text-gray-400";

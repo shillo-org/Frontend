@@ -10,8 +10,13 @@ import { TokenData } from "./types";
 import ExplorePage from "./pages/ExplorePage";
 import LiveStreamPage from "./pages/LiveStreamPage";
 import CharacterCreationPage from "./pages/CharacterCreationPage";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { WagmiProvider } from '@privy-io/wagmi';
+import { wagmiConfig } from "./utils/WagmiConfig";
 
-export {};
+
+
+export { };
 
 interface EthereumProvider {
   request: (args: { method: string }) => Promise<string[]>;
@@ -24,6 +29,17 @@ declare global {
   }
 }
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 60, // 1 hour
+      retry: 2,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
 function App() {
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
 
@@ -34,47 +50,51 @@ function App() {
     <main>
       <JotaiProvider>
         <WalletProvider>
-          <ToastProvider>
-            <BrowserRouter>
-              <Navbar />
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/explore" element={<ExplorePage />} />
-                <Route
-                  path="/list-token"
-                  element={
-                    <ListTokenPage
-                      updateTokenData={updateTokenData}
-                      tokenData={null}
-                    />
-                  }
-                />
-                <Route path="/stream/:tokenId" element={<LiveStreamPage />} />
-                <Route
-                  path="/create-character"
-                  element={
-                    <CharacterCreationPage
-                      initialTokenData={
-                        tokenData
-                          ? {
-                              name: tokenData.tokenName,
-                              symbol: tokenData.symbol,
-                              supply: tokenData.supply.toString(),
-                              imageUrl: tokenData.tokenImageUrl,
-                              description: tokenData.tokenDescription,
-                              website: tokenData.website,
-                              twitter: tokenData.twitter,
-                              telegram: tokenData.telegram,
-                              discord: tokenData.discord,
-                            }
-                          : null
+          <QueryClientProvider client={queryClient}>
+            <WagmiProvider config={wagmiConfig}>
+              <ToastProvider>
+                <BrowserRouter>
+                  <Navbar />
+                  <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/explore" element={<ExplorePage />} />
+                    <Route
+                      path="/list-token"
+                      element={
+                        <ListTokenPage
+                          updateTokenData={updateTokenData}
+                          tokenData={null}
+                        />
                       }
                     />
-                  }
-                />
-              </Routes>
-            </BrowserRouter>
-          </ToastProvider>
+                    <Route path="/stream/:tokenId" element={<LiveStreamPage />} />
+                    <Route
+                      path="/create-character"
+                      element={
+                        <CharacterCreationPage
+                          initialTokenData={
+                            tokenData
+                              ? {
+                                name: tokenData.tokenName,
+                                symbol: tokenData.symbol,
+                                supply: tokenData.supply.toString(),
+                                imageUrl: tokenData.tokenImageUrl,
+                                description: tokenData.tokenDescription,
+                                website: tokenData.website,
+                                twitter: tokenData.twitter,
+                                telegram: tokenData.telegram,
+                                discord: tokenData.discord,
+                              }
+                              : null
+                          }
+                        />
+                      }
+                    />
+                  </Routes>
+                </BrowserRouter>
+              </ToastProvider>
+            </WagmiProvider>
+          </QueryClientProvider>
         </WalletProvider>
       </JotaiProvider>
     </main>

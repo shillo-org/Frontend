@@ -7,6 +7,11 @@ import { useToast } from "../hooks/toast";
 import { uploadFile } from "../apis/file-upload";
 import { TokenData } from "../types";
 import AgentConfigurationPopup from "../components/AgentConfigurationPopup";
+import { useAtom } from "jotai";
+import { tokenDataAtom } from "../atoms";
+import { useWatchContractEvent, useWriteContract } from "wagmi";
+import { parseEther } from "viem";
+import { ABI } from "../../abi";
 
 interface ListTokenPageProps {
   tokenData: TokenData | null;
@@ -50,6 +55,19 @@ const ListTokenPage = ({
   >("youtube");
   const { toast } = useToast();
   const [authToken, setAuthToken] = useState<string>();
+  const [, setContractTokenData] = useAtom(tokenDataAtom);
+  const { writeContractAsync, data: createTokenDatam } = useWriteContract();
+  
+
+  useWatchContractEvent({
+    address: import.meta.env.VITE_CONTRACT_ADDRESS,
+    abi: ABI,
+    eventName: 'TokenCreated',
+    onLogs(log: any) {
+      // const [tokenAddress] = log;
+      console.log('New Token Created:', log);
+    },
+  });
 
   // Social agents configuration
   const [showAgentPopup, setShowAgentPopup] = useState(false);
@@ -125,6 +143,16 @@ const ListTokenPage = ({
         })
         .then(async () => {
           console.log(tokenData);
+
+
+          setContractTokenData({
+            name: tokenData.tokenName,
+            symbol: tokenData.symbol,
+            aiImageIpfsUrl: "",
+            aiModelIpfsUrl: "",
+            initialSupply: tokenData.supply
+          })
+
           const res = await createToken(authToken, tokenData);
           return res;
         })
@@ -188,8 +216,7 @@ const ListTokenPage = ({
             ...prev[selectedAgent],
             name:
               tokenData.tokenName ||
-              `${
-                selectedAgent.charAt(0).toUpperCase() + selectedAgent.slice(1)
+              `${selectedAgent.charAt(0).toUpperCase() + selectedAgent.slice(1)
               } Bot`,
           },
         }));
@@ -219,6 +246,29 @@ const ListTokenPage = ({
       },
     }));
   };
+
+
+  const handleTx = async () => {
+    const txHash = await writeContractAsync({
+      abi: ABI,
+      address: import.meta.env.VITE_CONTRACT_ADDRESS,
+      functionName: 'createToken',
+      args: [
+        "AA",                  // name
+        "AA",                       // symbol
+        "AA",         // aiImageIpfsUrl
+        "AA",         // aiModelIpfsUrl
+        BigInt(100),        // initialSupply
+        parseEther("0.001"),        // initialPrice
+        2        // curveSlope
+      ],
+    });
+    console.log(txHash, "Tx hash")
+  }
+
+  useEffect(() => {
+    console.log(createTokenDatam, "Contract address")
+  }, [createTokenDatam])
 
   useEffect(() => {
     const storedToken = localStorage.getItem("accessToken");
@@ -271,6 +321,9 @@ const ListTokenPage = ({
               tokenName={tokenData.tokenName}
             />
           )}
+          <button onClick={handleTx}>
+            Done
+          </button>
         </div>
       </div>
     </section>

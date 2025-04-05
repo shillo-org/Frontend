@@ -4,6 +4,7 @@ import {
   getAgentTemplates,
 } from "../apis/create-token-form";
 import { uploadFile } from "../apis/file-upload";
+import { tokenDataAtom } from "../atoms";
 import ImageUpload from "../components/ImageUpload";
 import IPFSFolderUploadComponent from "../components/IPFSFolderUploadComponent";
 import { useToast } from "../hooks/toast";
@@ -11,6 +12,9 @@ import { AgentTemplate } from "../types";
 import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useWriteContract } from "wagmi";
+import { ABI } from "../../abi";
+import { parseEther } from "viem";
 
 interface CharacterCreationPageProps {
   initialTokenData: {
@@ -47,6 +51,7 @@ const CharacterCreationPage = ({
     initialTokenData || { name: "", symbol: "" };
 
   const [agentTemplates, setAgentTemplates] = useState<AgentTemplate[]>([]);
+  const { writeContractAsync } = useWriteContract();
 
   const [characterType, setCharacterType] = useState<CharacterType>("vtuber");
   const [selectedTemplate, setSelectedTemplate] = useState<number>(1);
@@ -55,6 +60,7 @@ const CharacterCreationPage = ({
   const { toast } = useToast();
 
   const [authToken, setAuthToken] = useState<string>();
+  const [contractTokenData, setContractTokenData] = useAtom(tokenDataAtom);
 
   // Character name is automatically derived from token name
   const [characterName] = useState(
@@ -92,6 +98,7 @@ const CharacterCreationPage = ({
       agentIpfsURL = agentIpfsUrl;
     }
 
+    
     const { message, statusCode } = await addTokenCharacter(
       authToken!,
       location.state.id,
@@ -99,7 +106,30 @@ const CharacterCreationPage = ({
       agentName,
       agentIpfsURL
     );
+    
+    setContractTokenData({
+      name: contractTokenData?.name!,
+      symbol: contractTokenData?.symbol!,
+      aiImageIpfsUrl: contractTokenData?.aiImageIpfsUrl!,
+      aiModelIpfsUrl: contractTokenData?.aiModelIpfsUrl!,
+      initialSupply: contractTokenData?.initialSupply!
+    })
 
+    const txHash = await writeContractAsync({
+      abi: ABI,
+      address: import.meta.env.VITE_CONTRACT_ADDRESS,
+      functionName: 'createToken',
+      args: [
+        contractTokenData?.name,                  // name
+        contractTokenData?.symbol,                       // symbol
+        contractTokenData?.aiImageIpfsUrl,         // aiImageIpfsUrl
+        contractTokenData?.aiModelIpfsUrl,         // aiModelIpfsUrl
+        BigInt(contractTokenData?.initialSupply!),        // initialSupply
+        parseEther("0.001"),        // initialPrice
+        2        // curveSlope
+      ],
+    });
+    
     if (statusCode !== 201 && message !== "Agent info already exists") {
       toast({
         type: "danger",
@@ -227,11 +257,10 @@ const CharacterCreationPage = ({
                 <div className="flex gap-5 mb-8 mt-4">
                   <div
                     onClick={() => setCharacterType("vtuber")}
-                    className={`flex-1 p-5 border-4 rounded-xl text-center cursor-pointer transition-all duration-300 ${
-                      characterType === "vtuber"
-                        ? "border-primary shadow-md transform -translate-y-1 bg-primary/5"
-                        : "border-gray-200 hover:border-primary/40"
-                    }`}
+                    className={`flex-1 p-5 border-4 rounded-xl text-center cursor-pointer transition-all duration-300 ${characterType === "vtuber"
+                      ? "border-primary shadow-md transform -translate-y-1 bg-primary/5"
+                      : "border-gray-200 hover:border-primary/40"
+                      }`}
                   >
                     <img
                       src="/images/single-bot@2x.png"
@@ -246,11 +275,10 @@ const CharacterCreationPage = ({
 
                   <div
                     onClick={() => setCharacterType("custom")}
-                    className={`flex-1 p-5 border-4 rounded-xl text-center cursor-pointer transition-all duration-300 ${
-                      characterType === "custom"
-                        ? "border-primary shadow-md transform -translate-y-1 bg-primary/5"
-                        : "border-gray-200 hover:border-primary/40"
-                    }`}
+                    className={`flex-1 p-5 border-4 rounded-xl text-center cursor-pointer transition-all duration-300 ${characterType === "custom"
+                      ? "border-primary shadow-md transform -translate-y-1 bg-primary/5"
+                      : "border-gray-200 hover:border-primary/40"
+                      }`}
                   >
                     <img
                       src="/images/single-bot@2x.png"
@@ -272,11 +300,10 @@ const CharacterCreationPage = ({
                         <div
                           key={template.id}
                           onClick={() => setSelectedTemplate(template.id)}
-                          className={`border-4 rounded-lg p-4 flex flex-col h-full cursor-pointer transition-all duration-300 ${
-                            selectedTemplate === template.id
-                              ? "border-primary shadow-md transform -translate-y-1 bg-primary/5"
-                              : "border-gray-200 hover:border-primary/40"
-                          }`}
+                          className={`border-4 rounded-lg p-4 flex flex-col h-full cursor-pointer transition-all duration-300 ${selectedTemplate === template.id
+                            ? "border-primary shadow-md transform -translate-y-1 bg-primary/5"
+                            : "border-gray-200 hover:border-primary/40"
+                            }`}
                         >
                           <div className="flex-grow h-4/5 overflow-hidden mb-2">
                             <img
@@ -443,11 +470,10 @@ const CharacterCreationPage = ({
                         key={type}
                         type="button"
                         onClick={() => setVoiceType(type)}
-                        className={`py-3 px-4 rounded-xl border-2 font-medium transition-all duration-200 ${
-                          voiceType === type
-                            ? "bg-primary text-white border-primary shadow-md transform -translate-y-1"
-                            : "bg-white text-gray-700 border-gray-200 hover:border-primary/40"
-                        }`}
+                        className={`py-3 px-4 rounded-xl border-2 font-medium transition-all duration-200 ${voiceType === type
+                          ? "bg-primary text-white border-primary shadow-md transform -translate-y-1"
+                          : "bg-white text-gray-700 border-gray-200 hover:border-primary/40"
+                          }`}
                       >
                         {type.charAt(0).toUpperCase() + type.slice(1)}
                       </button>
@@ -474,11 +500,10 @@ const CharacterCreationPage = ({
                         key={type}
                         type="button"
                         onClick={() => setPersonalityType(type)}
-                        className={`py-3 px-4 rounded-xl border-2 font-medium transition-all duration-200 ${
-                          personalityType === type
-                            ? "bg-primary text-white border-primary shadow-md transform -translate-y-1"
-                            : "bg-white text-gray-700 border-gray-200 hover:border-primary/40"
-                        }`}
+                        className={`py-3 px-4 rounded-xl border-2 font-medium transition-all duration-200 ${personalityType === type
+                          ? "bg-primary text-white border-primary shadow-md transform -translate-y-1"
+                          : "bg-white text-gray-700 border-gray-200 hover:border-primary/40"
+                          }`}
                       >
                         {type.charAt(0).toUpperCase() + type.slice(1)}
                       </button>
