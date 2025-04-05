@@ -7,7 +7,6 @@ import { useToast } from "../hooks/toast";
 import { uploadFile } from "../apis/file-upload";
 import { TokenData } from "../types";
 import AgentConfigurationPopup from "../components/AgentConfigurationPopup";
-import { usePrivy } from "@privy-io/react-auth";
 
 interface ListTokenPageProps {
   tokenData: TokenData | null;

@@ -9,6 +9,7 @@ import { useState } from "react";
 import { TokenData } from "./types";
 import ExplorePage from "./pages/ExplorePage";
 import LiveStreamPage from "./pages/LiveStreamPage";
+import CharacterCreationPage from "./pages/CharacterCreationPage";
 
 export {};
 
@@ -39,7 +40,6 @@ function App() {
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/explore" element={<ExplorePage />} />
-
                 <Route
                   path="/list-token"
                   element={
@@ -50,6 +50,28 @@ function App() {
                   }
                 />
                 <Route path="/stream/:tokenId" element={<LiveStreamPage />} />
+                <Route
+                  path="/create-character"
+                  element={
+                    <CharacterCreationPage
+                      initialTokenData={
+                        tokenData
+                          ? {
+                              name: tokenData.tokenName,
+                              symbol: tokenData.symbol,
+                              supply: tokenData.supply.toString(),
+                              imageUrl: tokenData.tokenImageUrl,
+                              description: tokenData.tokenDescription,
+                              website: tokenData.website,
+                              twitter: tokenData.twitter,
+                              telegram: tokenData.telegram,
+                              discord: tokenData.discord,
+                            }
+                          : null
+                      }
+                    />
+                  }
+                />
               </Routes>
             </BrowserRouter>
           </ToastProvider>
