@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TokenInfoForm from "../forms/TokenInfoForm";
-import { useAtom } from "jotai";
-import { authTokenAtom } from "../atoms/global.atom";
+import SocialLinksForm from "../forms/SocialLinksForm";
+import { createToken } from "../apis/create-token-form";
 import { useToast } from "../hooks/toast";
+import { uploadFile } from "../apis/file-upload";
 import { TokenData } from "../types";
+import AgentConfigurationPopup from "../components/AgentConfigurationPopup";
+import { usePrivy } from "@privy-io/react-auth";
 
 interface ListTokenPageProps {
   tokenData: TokenData | null;
@@ -46,8 +49,8 @@ const ListTokenPage = ({
   const [streamingPlatform, setStreamingPlatform] = useState<
     "youtube" | "twitch" | "tiktok"
   >("youtube");
-  const [authToken] = useAtom(authTokenAtom);
   const { toast } = useToast();
+  const [authToken, setAuthToken] = useState<string>();
 
   // Social agents configuration
   const [showAgentPopup, setShowAgentPopup] = useState(false);
@@ -100,10 +103,49 @@ const ListTokenPage = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    if (authToken && customImage) {
+      // Pass token data up to parent
+      updateTokenData(tokenData);
 
-    // Pass token data up to parent
-    updateTokenData(tokenData);
-
+      await uploadFile(authToken, customImage, "tokens")
+        .then((res) => {
+          if (res.statusCode !== 201) {
+            toast({
+              type: "danger",
+              message: res.message,
+              duration: 3000,
+            });
+            return res;
+          }
+          if (res?.url) {
+            setTokenData((prevState) => ({
+              ...prevState,
+              tokenImageUrl: res.url,
+            }));
+          }
+        })
+        .then(async () => {
+          console.log(tokenData);
+          const res = await createToken(authToken, tokenData);
+          return res;
+        })
+        .then((res) => {
+          if (res.statusCode === 201) {
+            toast({
+              type: "success",
+              message: "Token Created Successfully!",
+              duration: 3000,
+            });
+            navigate("/create-character", { state: { id: res.message } });
+          } else {
+            toast({
+              type: "danger",
+              message: res.message.toString(),
+              duration: 3000,
+            });
+          }
+        });
+    }
     setIsSubmitting(false);
   };
 
@@ -179,6 +221,13 @@ const ListTokenPage = ({
     }));
   };
 
+  useEffect(() => {
+    const storedToken = localStorage.getItem("accessToken");
+    if (storedToken) {
+      setAuthToken(storedToken);
+    }
+  }, []);
+
   return (
     <section className="bg-blue-dark bg-pattern pt-24 pb-20">
       <div className="container max-w-[800px] mx-auto px-4">
@@ -194,7 +243,35 @@ const ListTokenPage = ({
                 nextStep={nextStep}
               />
             )}
+
+            {formStep === 2 && (
+              <SocialLinksForm
+                tokenData={tokenData}
+                handleInputChange={handleInputChange}
+                prevStep={prevStep}
+                isSubmitting={isSubmitting}
+                socialAgents={socialAgents}
+                onToggleAgent={handleToggleAgent}
+                onConfigureAgent={openAgentPopup}
+                streamingPlatform={streamingPlatform}
+                handleStreamingPlatformChange={(platform) =>
+                  setStreamingPlatform(platform)
+                }
+              />
+            )}
           </form>
+
+          {/* Agent Configuration Popup */}
+          {showAgentPopup && selectedAgent && (
+            <AgentConfigurationPopup
+              selectedAgent={selectedAgent}
+              socialAgents={socialAgents}
+              closeAgentPopup={closeAgentPopup}
+              handleAgentChange={handleAgentChange}
+              saveAgentConfig={saveAgentConfig}
+              tokenName={tokenData.tokenName}
+            />
+          )}
         </div>
       </div>
     </section>

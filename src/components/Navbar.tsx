@@ -1,25 +1,42 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useToast } from "../hooks/toast";
 import { usePrivy } from "@privy-io/react-auth";
+import { login as loginAPI } from "../apis/auth";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { toast } = useToast();
-  const { ready, authenticated, login, logout, user, connectWallet } =
+  const [accessToken, setAccessToken] = useState<string>();
+  const { ready, authenticated, login, logout, user, getAccessToken } =
     usePrivy();
-
-  // Mock connected state that you can replace with your preferred auth method
-  // const [connected, setConnected] = useState(false);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const handleConnect = () => {
-    connectWallet();
+  useEffect(() => {
+    (async () => {
+      await getAccessToken().then((token) => {
+        if (token) {
+          // Store token in state
+          setAccessToken(token);
 
-    if (authenticated) {
+          // Also store in localStorage
+          localStorage.setItem("accessToken", token);
+          loginAPI(token);
+          console.log(token);
+        }
+      });
+    })();
+
+    console.log(accessToken);
+  }, [authenticated]);
+
+  const handleConnect = () => {
+    login();
+
+    if (authenticated && accessToken) {
       toast({
         type: "success",
         message: "Connected successfully",
@@ -122,7 +139,9 @@ const Navbar = () => {
                 )}
 
                 <button
-                  onClick={handleConnect}
+                  onClick={() => {
+                    authenticated ? logout() : handleConnect();
+                  }}
                   className="rounded-lg bg-[#ff3979] hover:bg-[#5100ff] transition-colors duration-200 py-2 px-4 text-white border-none cursor-pointer ml-3 text-base"
                 >
                   {authenticated ? "Disconnect" : "Connect"}
@@ -171,7 +190,7 @@ const Navbar = () => {
 
                 <button
                   onClick={() => {
-                    handleConnect();
+                    authenticated ? logout() : handleConnect();
                     toggleMenu();
                   }}
                   className="w-full rounded-lg bg-[#ff3979] hover:bg-[#5100ff] transition-colors duration-200 py-3 text-white text-lg font-medium border-none cursor-pointer mt-6"
