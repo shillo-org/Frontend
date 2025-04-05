@@ -8,6 +8,7 @@ import ListTokenPage from "./pages/ListTokenPage";
 import { useState } from "react";
 import { TokenData } from "./types";
 import ExplorePage from "./pages/ExplorePage";
+import LiveStreamPage from "./pages/LiveStreamPage";
 
 export {};
 
@@ -48,6 +49,7 @@ function App() {
                     />
                   }
                 />
+                <Route path="/stream/:tokenId" element={<LiveStreamPage />} />
               </Routes>
             </BrowserRouter>
           </ToastProvider>
