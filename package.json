@@ -23,14 +23,11 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.5.0",
-<<<<<<< Updated upstream
     "socket.io-client": "^4.8.1",
     "uuid": "^11.1.0",
     "viem": "^2.25.0",
     "wagmi": "^2.14.16"
-=======
     "recharts": "^2.15.2"
->>>>>>> Stashed changes
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
