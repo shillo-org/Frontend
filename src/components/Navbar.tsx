@@ -1,23 +1,25 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useToast } from "../hooks/toast";
+import { usePrivy } from "@privy-io/react-auth";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { toast } = useToast();
+  const { ready, authenticated, login, logout, user, connectWallet } =
+    usePrivy();
 
   // Mock connected state that you can replace with your preferred auth method
-  const [connected, setConnected] = useState(false);
+  // const [connected, setConnected] = useState(false);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
   const handleConnect = () => {
-    // Replace with your preferred authentication method
-    setConnected(!connected);
+    connectWallet();
 
-    if (!connected) {
+    if (authenticated) {
       toast({
         type: "success",
         message: "Connected successfully",
@@ -96,7 +98,7 @@ const Navbar = () => {
                 >
                   Explore
                 </Link>
-                {connected && (
+                {authenticated && (
                   <>
                     <Link
                       to="/list-token"
@@ -123,7 +125,7 @@ const Navbar = () => {
                   onClick={handleConnect}
                   className="rounded-lg bg-[#ff3979] hover:bg-[#5100ff] transition-colors duration-200 py-2 px-4 text-white border-none cursor-pointer ml-3 text-base"
                 >
-                  {connected ? "Disconnect" : "Connect"}
+                  {authenticated ? "Disconnect" : "Connect"}
                 </button>
               </nav>
             </div>
@@ -141,7 +143,7 @@ const Navbar = () => {
                 >
                   Explore
                 </Link>
-                {connected && (
+                {authenticated && (
                   <>
                     <Link
                       to="/list-token"
@@ -174,7 +176,7 @@ const Navbar = () => {
                   }}
                   className="w-full rounded-lg bg-[#ff3979] hover:bg-[#5100ff] transition-colors duration-200 py-3 text-white text-lg font-medium border-none cursor-pointer mt-6"
                 >
-                  {connected ? "Disconnect" : "Connect"}
+                  {authenticated ? "Disconnect" : "Connect"}
                 </button>
               </div>
             </div>
