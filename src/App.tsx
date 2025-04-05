@@ -3,6 +3,7 @@ import HomePage from "./pages/HomePage";
 import { ToastProvider } from "./hooks/toast";
 import Navbar from "./components/Navbar";
 import WalletProvider from "./utils/WalletProvider";
+import { Provider as JotaiProvider } from "jotai";
 
 export {};
 
@@ -20,16 +21,18 @@ declare global {
 function App() {
   return (
     <main>
-      <WalletProvider>
-        <ToastProvider>
-          <BrowserRouter>
-            <Navbar />
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-            </Routes>
-          </BrowserRouter>
-        </ToastProvider>
-      </WalletProvider>
+      <JotaiProvider>
+        <WalletProvider>
+          <ToastProvider>
+            <BrowserRouter>
+              <Navbar />
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+              </Routes>
+            </BrowserRouter>
+          </ToastProvider>
+        </WalletProvider>
+      </JotaiProvider>
     </main>
   );
 }
