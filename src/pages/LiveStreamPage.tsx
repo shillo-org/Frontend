@@ -508,7 +508,12 @@ const LiveStreamPage: React.FC = () => {
               setIsLive={setIsLive}
             />
             <div className="flex flex-row text-white mb-4 gap-4">
-              <button className="px-8 py-4 bg-red-500 rounded-lg">BUY</button>
+              <button
+                className="px-8 py-4 bg-red-500 rounded-lg"
+                onClick={() => setBuyModalVisible(true)}
+              >
+                BUY
+              </button>
               <button className="px-8 py-4 bg-green-400 rounded-lg">
                 SELL
               </button>
