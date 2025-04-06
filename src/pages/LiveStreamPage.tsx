@@ -20,6 +20,7 @@ import {
 import { Socket } from "socket.io-client";
 import { usePrivy } from "@privy-io/react-auth";
 import TokenPriceChart from "../components/PriceChart";
+import { BuyModal } from "../components/TransactionModal";
 
 const LiveStreamPage: React.FC = () => {
   const { tokenId } = useParams<{ tokenId: string }>();
@@ -35,7 +36,10 @@ const LiveStreamPage: React.FC = () => {
   const [socketConnected, setSocketConnected] = useState<boolean>(false);
   const socketRef = useRef<Socket | null>(null);
   const { toast } = useToast();
+  const [buyModalVisible, setBuyModalVisible] = useState<boolean>();
+  const [setModalVisible, setSellModalVisible] = useState();
 
+  const handleBuy = {};
   const { user } = usePrivy();
 
   // Initialize socket connection once (not dependent on tokenInfo)
@@ -534,6 +538,14 @@ const LiveStreamPage: React.FC = () => {
         <AgentModal
           tokenInfo={tokenInfo}
           onClose={() => setShowAgentModal(false)}
+        />
+      )}
+      {buyModalVisible && tokenInfo && (
+        <BuyModal
+          isOpen={buyModalVisible}
+          onBuy={handleBuy}
+          onClose={() => setBuyModalVisible(false)}
+          tokenInfo={tokenInfo}
         />
       )}
     </div>

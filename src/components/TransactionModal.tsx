@@ -1,162 +1,174 @@
-// TransactionModal.tsx
-import React, { useState, useEffect } from "react";
-import { parseEther, formatEther } from "viem";
-import { useAccount } from "wagmi";
+import { useState } from "react";
+import { AIToken } from "../types";
 
-interface TransactionModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: (amount: number) => Promise<void>;
-  title: string;
-  type: "buy" | "sell";
-  currentPrice: string;
-  tokenSymbol: string;
-  tokenBalance?: string;
-  ethBalance?: string;
-  getSellReturn?: (amount: number) => Promise<bigint>;
+// TypeScript interfaces
+interface TokenInfo {
+  tokenName: string;
+  symbol: string;
+  contractAddress: string;
 }
 
-const TransactionModal: React.FC<TransactionModalProps> = ({
+interface BuyModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  tokenInfo: AIToken;
+  onBuy: (amount: string) => void;
+}
+
+interface SellModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  tokenInfo: TokenInfo;
+  currentPrice: string;
+  tokenBalance: string;
+  estimatedReturn: string;
+  onSell: (amount: string) => void;
+  isLoading: boolean;
+}
+
+// Buy Modal Component
+export const BuyModal: React.FC<BuyModalProps> = ({
   isOpen,
   onClose,
-  onConfirm,
-  title,
-  type,
-  currentPrice,
-  tokenSymbol,
-  tokenBalance = "0",
-  ethBalance = "0",
-  getSellReturn,
+  tokenInfo,
+  onBuy,
 }) => {
   const [amount, setAmount] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [estimatedReturn, setEstimatedReturn] = useState<string>("0");
-  const { isConnected } = useAccount();
-
-  useEffect(() => {
-    if (isOpen) {
-      setAmount("");
-      setError(null);
-      setEstimatedReturn("0");
-    }
-  }, [isOpen]);
-
-  // Calculate estimated return when selling tokens
-  useEffect(() => {
-    const updateEstimatedReturn = async () => {
-      if (
-        type === "sell" &&
-        getSellReturn &&
-        amount &&
-        parseFloat(amount) > 0
-      ) {
-        try {
-          const returnValue = await getSellReturn(parseFloat(amount));
-          setEstimatedReturn(formatEther(returnValue));
-        } catch (error) {
-          console.error("Error calculating return:", error);
-        }
-      }
-    };
-
-    updateEstimatedReturn();
-  }, [amount, type, getSellReturn]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!isConnected) {
-      setError("Please connect your wallet first");
-      return;
-    }
-
-    if (!amount || parseFloat(amount) <= 0) {
-      setError("Please enter a valid amount");
-      return;
-    }
-
-    // Check balances
-    if (type === "buy") {
-      if (parseFloat(amount) > parseFloat(ethBalance)) {
-        setError("Insufficient ETH balance");
-        return;
-      }
-    } else {
-      if (parseFloat(amount) > parseFloat(tokenBalance)) {
-        setError("Insufficient token balance");
-        return;
-      }
-    }
-
-    setError(null);
-    setIsLoading(true);
-
-    try {
-      await onConfirm(parseFloat(amount));
-      onClose();
-    } catch (err) {
-      setError((err as Error).message || "Transaction failed");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   if (!isOpen) return null;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onBuy(amount);
+  };
+
+  //   const estimatedTokens =
+  //     parseFloat(amount) > 0 && parseFloat(currentPrice) > 0
+  //       ? parseFloat(amount) / parseFloat(currentPrice)
+  //       : 0;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full border border-gray-700">
-        <h3 className="text-xl font-bold text-white mb-4">{title}</h3>
+        <h3 className="text-xl font-bold text-white mb-4">
+          Buy {tokenInfo.tokenName} ({tokenInfo.symbol})
+        </h3>
 
         <div className="mb-4 space-y-2">
           <p className="text-gray-300">
-            Current Price: {currentPrice} ETH per {tokenSymbol}
+            {/* Current Price: {currentPrice} ETH per {tokenInfo.symbol} */}
           </p>
-
-          {type === "buy" ? (
-            <p className="text-gray-300">Your ETH Balance: {ethBalance} ETH</p>
-          ) : (
-            <p className="text-gray-300">
-              Your {tokenSymbol} Balance: {tokenBalance} {tokenSymbol}
-            </p>
-          )}
+          {/* <p className="text-gray-300">Your ETH Balance: {ethBalance} ETH</p> */}
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-gray-300 mb-2">
-              {type === "buy" ? "Amount in ETH" : `Amount in ${tokenSymbol}`}:
-            </label>
+            <label className="block text-gray-300 mb-2">Amount in ETH:</label>
             <input
               type="number"
               step="0.000001"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setAmount(e.target.value)
+              }
               className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white"
-              placeholder={`Enter ${
-                type === "buy" ? "ETH" : tokenSymbol
-              } amount`}
-              disabled={isLoading}
+              placeholder="Enter ETH amount"
+              //   disabled={isLoading}
             />
           </div>
 
-          {/* Display estimated tokens when buying */}
-          {type === "buy" && amount && parseFloat(amount) > 0 && (
+          {/* Estimated tokens */}
+          {/* {parseFloat(amount) > 0 && (
             <div className="mb-4 p-2 bg-gray-700 rounded-md">
               <p className="text-gray-300">
-                Estimated tokens: ~
-                {parseFloat(amount) / parseFloat(currentPrice || "1")}{" "}
-                {tokenSymbol}
+                Estimated tokens: ~{estimatedTokens.toFixed(6)}{" "}
+                {tokenInfo.symbol}
               </p>
               <p className="text-xs text-gray-400 mt-1">
                 (Actual amount may vary due to slippage and gas fees)
               </p>
             </div>
-          )}
+          )} */}
 
-          {/* Display estimated return when selling */}
-          {type === "sell" && amount && parseFloat(amount) > 0 && (
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-700 text-white rounded-md"
+              //   disabled={isLoading}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 rounded-md bg-red-500 hover:bg-red-600 text-white font-bold"
+              disabled={!amount || parseFloat(amount) <= 0}
+            >
+              {"Buy"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// Sell Modal Component
+export const SellModal: React.FC<SellModalProps> = ({
+  isOpen,
+  onClose,
+  tokenInfo,
+  currentPrice,
+  tokenBalance,
+  estimatedReturn,
+  onSell,
+  isLoading,
+}) => {
+  const [amount, setAmount] = useState<string>("");
+
+  if (!isOpen) return null;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSell(amount);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full border border-gray-700">
+        <h3 className="text-xl font-bold text-white mb-4">
+          Sell {tokenInfo.tokenName} ({tokenInfo.symbol})
+        </h3>
+
+        <div className="mb-4 space-y-2">
+          <p className="text-gray-300">
+            Current Price: {currentPrice} ETH per {tokenInfo.symbol}
+          </p>
+          <p className="text-gray-300">
+            Your {tokenInfo.symbol} Balance: {tokenBalance} {tokenInfo.symbol}
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-gray-300 mb-2">
+              Amount in {tokenInfo.symbol}:
+            </label>
+            <input
+              type="number"
+              step="0.000001"
+              value={amount}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setAmount(e.target.value)
+              }
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white"
+              placeholder={`Enter ${tokenInfo.symbol} amount`}
+              disabled={isLoading}
+            />
+          </div>
+
+          {/* Estimated return */}
+          {parseFloat(amount) > 0 && (
             <div className="mb-4 p-2 bg-gray-700 rounded-md">
               <p className="text-gray-300">
                 Estimated return: ~{estimatedReturn} ETH
@@ -164,12 +176,6 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
               <p className="text-xs text-gray-400 mt-1">
                 (Actual return may vary due to slippage and gas fees)
               </p>
-            </div>
-          )}
-
-          {error && (
-            <div className="mb-4 p-2 bg-red-900 border border-red-700 rounded-md text-white">
-              {error}
             </div>
           )}
 
@@ -184,14 +190,15 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
             </button>
             <button
               type="submit"
-              className={`px-4 py-2 rounded-md ${
-                type === "buy"
-                  ? "bg-red-500 hover:bg-red-600"
-                  : "bg-green-500 hover:bg-green-600"
-              } text-white font-bold`}
-              disabled={isLoading}
+              className="px-4 py-2 rounded-md bg-green-500 hover:bg-green-600 text-white font-bold"
+              disabled={
+                isLoading ||
+                !amount ||
+                parseFloat(amount) <= 0 ||
+                parseFloat(amount) > parseFloat(tokenBalance)
+              }
             >
-              {isLoading ? "Processing..." : type === "buy" ? "Buy" : "Sell"}
+              {isLoading ? "Processing..." : "Sell"}
             </button>
           </div>
         </form>
@@ -200,4 +207,5 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
   );
 };
 
-export default TransactionModal;
+// Don't forget to add the useState import at the top of your file:
+// import React, { useState } from 'react';
