@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { AIToken } from "../types";
+import { useWriteContract } from "wagmi";
+import { ABI } from "../../abi";
+import { parseEther } from "viem";
 
 // TypeScript interfaces
 interface TokenInfo {
@@ -37,8 +40,24 @@ export const BuyModal: React.FC<BuyModalProps> = ({
 
   if (!isOpen) return null;
 
+  const { writeContract } = useWriteContract();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    writeContract({
+      abi: ABI,
+      address: import.meta.env.VITE_CONTRACT_ADDRESS,
+      functionName: 'buyTokens',
+      args: [
+        tokenInfo.contractAddress,
+        0
+      ],
+      value: parseEther("0.01")
+    })
+
+    onClose();
+
     onBuy(amount);
   };
 
@@ -63,7 +82,7 @@ export const BuyModal: React.FC<BuyModalProps> = ({
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-gray-300 mb-2">Amount in ETH:</label>
+            <label className="block text-gray-300 mb-2">Amount in CELO:</label>
             <input
               type="number"
               step="0.000001"
@@ -73,7 +92,7 @@ export const BuyModal: React.FC<BuyModalProps> = ({
               }
               className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white"
               placeholder="Enter ETH amount"
-              //   disabled={isLoading}
+            //   disabled={isLoading}
             />
           </div>
 
@@ -95,7 +114,7 @@ export const BuyModal: React.FC<BuyModalProps> = ({
               type="button"
               onClick={onClose}
               className="px-4 py-2 bg-gray-700 text-white rounded-md"
-              //   disabled={isLoading}
+            //   disabled={isLoading}
             >
               Cancel
             </button>
