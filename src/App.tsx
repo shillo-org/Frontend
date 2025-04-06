@@ -10,13 +10,12 @@ import { TokenData } from "./types";
 import ExplorePage from "./pages/ExplorePage";
 import LiveStreamPage from "./pages/LiveStreamPage";
 import CharacterCreationPage from "./pages/CharacterCreationPage";
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { WagmiProvider } from '@privy-io/wagmi';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { WagmiProvider } from "@privy-io/wagmi";
 import { wagmiConfig } from "./utils/WagmiConfig";
+import Footer from "./components/Footer";
 
-
-
-export { };
+export {};
 
 interface EthereumProvider {
   request: (args: { method: string }) => Promise<string[]>;
@@ -58,7 +57,10 @@ function App() {
                         />
                       }
                     />
-                    <Route path="/stream/:tokenId" element={<LiveStreamPage />} />
+                    <Route
+                      path="/stream/:tokenId"
+                      element={<LiveStreamPage />}
+                    />
                     <Route
                       path="/create-character"
                       element={
@@ -66,22 +68,23 @@ function App() {
                           initialTokenData={
                             tokenData
                               ? {
-                                name: tokenData.tokenName,
-                                symbol: tokenData.symbol,
-                                supply: tokenData.supply.toString(),
-                                imageUrl: tokenData.tokenImageUrl,
-                                description: tokenData.tokenDescription,
-                                website: tokenData.website,
-                                twitter: tokenData.twitter,
-                                telegram: tokenData.telegram,
-                                discord: tokenData.discord,
-                              }
+                                  name: tokenData.tokenName,
+                                  symbol: tokenData.symbol,
+                                  supply: tokenData.supply.toString(),
+                                  imageUrl: tokenData.tokenImageUrl,
+                                  description: tokenData.tokenDescription,
+                                  website: tokenData.website,
+                                  twitter: tokenData.twitter,
+                                  telegram: tokenData.telegram,
+                                  discord: tokenData.discord,
+                                }
                               : null
                           }
                         />
                       }
                     />
                   </Routes>
+                  <Footer />
                 </BrowserRouter>
               </ToastProvider>
             </WagmiProvider>

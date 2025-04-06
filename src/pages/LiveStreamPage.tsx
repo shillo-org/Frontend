@@ -15,7 +15,7 @@ import {
   likeStream as socketLikeStream,
   disconnectSocket,
   isSocketConnected,
-  onEvent
+  onEvent,
 } from "../components/stream/socketConnection";
 import { Socket } from "socket.io-client";
 import { usePrivy } from "@privy-io/react-auth";
@@ -53,7 +53,9 @@ const LiveStreamPage: React.FC = () => {
         if (tokenId) {
           subscribeToStream(tokenId, (response) => {
             if (!response.success) {
-              console.warn(`Failed to subscribe to stream: ${response.message}`);
+              console.warn(
+                `Failed to subscribe to stream: ${response.message}`
+              );
             }
           });
         }
@@ -79,8 +81,8 @@ const LiveStreamPage: React.FC = () => {
     if (!tokenInfo) return;
 
     // Handle incoming messages
-    const handleNewMessage = (data: {streamId: string, message: Message}) => {
-      console.log(data,"====")
+    const handleNewMessage = (data: { streamId: string; message: Message }) => {
+      console.log(data, "====");
       const newMessage: Message = {
         id: `socket-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         user: data.message.user,
@@ -95,7 +97,12 @@ const LiveStreamPage: React.FC = () => {
     // Handle stream history
     const handleStreamHistory = (data: {
       streamId: string;
-      messages: Array<{ id?: string; username: string; message: string; timestamp: string }>
+      messages: Array<{
+        id?: string;
+        username: string;
+        message: string;
+        timestamp: string;
+      }>;
     }) => {
       const historyMessages: Message[] = data.messages.map((msg) => ({
         id: `history-${msg.id || Date.now() + Math.random()}`,
@@ -109,8 +116,10 @@ const LiveStreamPage: React.FC = () => {
       if (historyMessages.length > 0) {
         setMessages((prev) => {
           // Only add history messages if they don't already exist
-          const existingIds = new Set(prev.map(msg => msg.id));
-          const newHistoryMessages = historyMessages.filter(msg => !existingIds.has(msg.id));
+          const existingIds = new Set(prev.map((msg) => msg.id));
+          const newHistoryMessages = historyMessages.filter(
+            (msg) => !existingIds.has(msg.id)
+          );
           return [...prev, ...newHistoryMessages];
         });
       }
@@ -203,9 +212,11 @@ const LiveStreamPage: React.FC = () => {
           const systemMessage: Message = {
             id: "system-welcome",
             user: "System",
-            text: `Welcome to the ${enhancedTokenInfo.tokenName
-              } live stream! Chat with other viewers and interact with ${enhancedTokenInfo.agentDisplay?.agentName || "the AI agent"
-              }.`,
+            text: `Welcome to the ${
+              enhancedTokenInfo.tokenName
+            } live stream! Chat with other viewers and interact with ${
+              enhancedTokenInfo.agentDisplay?.agentName || "the AI agent"
+            }.`,
             timestamp: new Date(),
             isAI: false,
           };
@@ -214,9 +225,11 @@ const LiveStreamPage: React.FC = () => {
           const initialMessage: Message = {
             id: "initial",
             user: enhancedTokenInfo.agentDisplay?.agentName || "AI Agent",
-            text: `Hey everyone! It's ${enhancedTokenInfo.agentDisplay?.agentName || "your AI agent"
-              } here, the face of ${enhancedTokenInfo.tokenName
-              }! Ask me anything about the token or just chat with me. I'm feeling ribbit-ing today! 🐸`,
+            text: `Hey everyone! It's ${
+              enhancedTokenInfo.agentDisplay?.agentName || "your AI agent"
+            } here, the face of ${
+              enhancedTokenInfo.tokenName
+            }! Ask me anything about the token or just chat with me. I'm feeling ribbit-ing today! 🐸`,
             timestamp: new Date(),
             isAI: true,
           };
@@ -262,12 +275,13 @@ const LiveStreamPage: React.FC = () => {
       isCurrentUser: true,
     };
 
-
     // Send message via socket if connected
     if (socketConnected && tokenId) {
       socketSendMessage(tokenId, userMessage);
     } else {
-      console.log("Socket not connected, message will only be displayed locally");
+      console.log(
+        "Socket not connected, message will only be displayed locally"
+      );
     }
 
     // Always simulate AI response in case server doesn't respond
@@ -346,8 +360,8 @@ const LiveStreamPage: React.FC = () => {
   //         lowerCaseMessage.includes("connect") ||
   //         lowerCaseMessage.includes("offline")
   //       ) {
-  //         aiResponse = socketConnected 
-  //           ? `We're currently connected to the chat server! Everything is working properly.` 
+  //         aiResponse = socketConnected
+  //           ? `We're currently connected to the chat server! Everything is working properly.`
   //           : `We seem to be having connection issues with the chat server. The team is working to resolve this. In the meantime, I'm still here to chat with you!`;
   //       } else {
   //         // Default random responses array
@@ -489,10 +503,17 @@ const LiveStreamPage: React.FC = () => {
               onLike={handleLike}
               setIsLive={setIsLive}
             />
-              <TokenPriceChart
-                tokenId={parseInt(tokenId!)}
-                tokenSymbol={tokenInfo.symbol}
-              />
+            <div className="flex flex-row text-white mb-4 gap-4">
+              <button className="px-8 py-4 bg-red-500 rounded-lg">BUY</button>
+              <button className="px-8 py-4 bg-green-400 rounded-lg">
+                SELL
+              </button>
+            </div>
+
+            <TokenPriceChart
+              tokenId={parseInt(tokenId!)}
+              tokenSymbol={tokenInfo.symbol}
+            />
             <TokenInfoCard
               tokenInfo={tokenInfo}
               onAgentClick={() => setShowAgentModal(true)}

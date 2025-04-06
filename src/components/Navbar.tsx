@@ -8,8 +8,7 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { toast } = useToast();
   const [accessToken, setAccessToken] = useState<string>();
-  const { ready, authenticated, login, logout, user, getAccessToken } =
-    usePrivy();
+  const { authenticated, login, logout, getAccessToken } = usePrivy();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
