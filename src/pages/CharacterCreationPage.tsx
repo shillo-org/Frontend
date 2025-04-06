@@ -1,5 +1,6 @@
 import {
   addTokenCharacter,
+  addTokenContract,
   addTokenPersonality,
   getAgentTemplates,
 } from "../apis/create-token-form";
@@ -14,7 +15,11 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useWriteContract } from "wagmi";
 import { ABI } from "../../abi";
-import { parseEther } from "viem";
+import { createPublicClient, http, parseEther } from "viem";
+import { celoAlfajores } from "viem/chains";
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 
 interface CharacterCreationPageProps {
   initialTokenData: {
@@ -80,6 +85,17 @@ const CharacterCreationPage = ({
   const [pinataJwt, setPinataJwt] = useState("");
   const [agentPfp, setAgentPfp] = useState("");
 
+  const viemClient = createPublicClient({
+    cacheTime: 0,
+    batch: {
+      multicall: true
+    },
+    chain: celoAlfajores,
+    transport: http(
+      `https://celo-alfajores.drpc.org`
+    )
+  })
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -98,7 +114,7 @@ const CharacterCreationPage = ({
       agentIpfsURL = agentIpfsUrl;
     }
 
-    
+
     const { message, statusCode } = await addTokenCharacter(
       authToken!,
       location.state.id,
@@ -106,30 +122,49 @@ const CharacterCreationPage = ({
       agentName,
       agentIpfsURL
     );
-    
+
     setContractTokenData({
       name: contractTokenData?.name!,
       symbol: contractTokenData?.symbol!,
-      aiImageIpfsUrl: contractTokenData?.aiImageIpfsUrl!,
-      aiModelIpfsUrl: contractTokenData?.aiModelIpfsUrl!,
+      aiImageIpfsUrl: agentImageUrl!,
+      aiModelIpfsUrl: agentIpfsURL!,
       initialSupply: contractTokenData?.initialSupply!
     })
 
-    const txHash = await writeContractAsync({
+    await writeContractAsync({
       abi: ABI,
       address: import.meta.env.VITE_CONTRACT_ADDRESS,
       functionName: 'createToken',
       args: [
         contractTokenData?.name,                  // name
         contractTokenData?.symbol,                       // symbol
-        contractTokenData?.aiImageIpfsUrl,         // aiImageIpfsUrl
-        contractTokenData?.aiModelIpfsUrl,         // aiModelIpfsUrl
+        agentImageUrl,         // aiImageIpfsUrl
+        agentIpfsURL,         // aiModelIpfsUrl
         BigInt(contractTokenData?.initialSupply!),        // initialSupply
         parseEther("0.001"),        // initialPrice
-        2        // curveSlope
+        2
       ],
     });
+
+    const tokenListCount = await viemClient.readContract({
+      address: import.meta.env.VITE_CONTRACT_ADDRESS,
+      abi: ABI,
+      functionName: "getTokenCount"
+    })
     
+    console.log(parseInt((tokenListCount as bigint).toString()),"Total tokens")
+    await sleep(5000);
+
+    const contractAddress = await viemClient.readContract({
+      address: import.meta.env.VITE_CONTRACT_ADDRESS,
+      abi: ABI,
+      functionName: "allTokens",
+      args: [parseInt((tokenListCount as bigint).toString())]
+    })
+    await sleep(5000);
+
+    console.log("Contract Addres:", contractAddress)
+
     if (statusCode !== 201 && message !== "Agent info already exists") {
       toast({
         type: "danger",
@@ -139,6 +174,15 @@ const CharacterCreationPage = ({
       setIsSubmitting(false);
       return;
     }
+
+    const addContractResp = await addTokenContract(
+      authToken!,
+      location.state.id,
+      contractAddress as string
+    );
+
+    console.log(addContractResp.statusCode, "Contract Update")
+
 
     const resp = await addTokenPersonality(
       authToken!,
@@ -164,7 +208,7 @@ const CharacterCreationPage = ({
     }
 
     setIsSubmitting(false);
-    navigate("/dashboard");
+    navigate("/explore");
   };
 
   const onIpfsUpload = (data: any) => {

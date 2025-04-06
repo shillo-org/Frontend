@@ -9,9 +9,10 @@ import { TokenData } from "../types";
 import AgentConfigurationPopup from "../components/AgentConfigurationPopup";
 import { useAtom } from "jotai";
 import { tokenDataAtom } from "../atoms";
-import { useWatchContractEvent, useWriteContract } from "wagmi";
-import { parseEther } from "viem";
+import { useBlockNumber, useContractRead, useReadContract, useWatchContractEvent, useWriteContract } from "wagmi";
+import { createPublicClient, http, parseEther } from "viem";
 import { ABI } from "../../abi";
+import { celoAlfajores } from "viem/chains";
 
 interface ListTokenPageProps {
   tokenData: TokenData | null;
@@ -56,18 +57,41 @@ const ListTokenPage = ({
   const { toast } = useToast();
   const [authToken, setAuthToken] = useState<string>();
   const [, setContractTokenData] = useAtom(tokenDataAtom);
-  const { writeContractAsync, data: createTokenDatam } = useWriteContract();
-  
+  const { writeContractAsync } = useWriteContract();
 
-  useWatchContractEvent({
-    address: import.meta.env.VITE_CONTRACT_ADDRESS,
-    abi: ABI,
-    eventName: 'TokenCreated',
-    onLogs(log: any) {
-      // const [tokenAddress] = log;
-      console.log('New Token Created:', log);
-    },
-  });
+
+  // useWatchContractEvent({
+  //   address: import.meta.env.VITE_CONTRACT_ADDRESS,
+  //   abi: ABI,
+  //   eventName: 'TokenCreated',
+  //   chainId:celoAlfajores.id,
+  //   onLogs(logs) {
+  //     console.log('New logs!', logs)
+  //   },
+  //   onError (err) {
+  //     console.log("eer", err)
+  //     console.log({
+  //       address: import.meta.env.VITE_CONTRACT_ADDRESS,
+
+  //     })
+  //   }
+  // })
+
+  // const { data: getTotalTokensListed, refetch } = useReadContract({
+  //   address: import.meta.env.VITE_CONTRACT_ADDRESS,
+  //   abi: ABI,
+  //   functionName: 'getTokenCount',
+  // });
+
+  // const { data: blockNumber } = useBlockNumber({ watch: true })
+
+
+  // const { data: contractAddress } = useReadContract({
+  //   address: import.meta.env.VITE_CONTRACT_ADDRESS,
+  //   abi: ABI,
+  //   functionName: 'allTokens',
+  //   args: [parseInt(getTotalTokensListed as string) - 1]
+  // });
 
   // Social agents configuration
   const [showAgentPopup, setShowAgentPopup] = useState(false);
@@ -248,28 +272,6 @@ const ListTokenPage = ({
   };
 
 
-  const handleTx = async () => {
-    const txHash = await writeContractAsync({
-      abi: ABI,
-      address: import.meta.env.VITE_CONTRACT_ADDRESS,
-      functionName: 'createToken',
-      args: [
-        "AA",                  // name
-        "AA",                       // symbol
-        "AA",         // aiImageIpfsUrl
-        "AA",         // aiModelIpfsUrl
-        BigInt(100),        // initialSupply
-        parseEther("0.001"),        // initialPrice
-        2        // curveSlope
-      ],
-    });
-    console.log(txHash, "Tx hash")
-  }
-
-  useEffect(() => {
-    console.log(createTokenDatam, "Contract address")
-  }, [createTokenDatam])
-
   useEffect(() => {
     const storedToken = localStorage.getItem("accessToken");
     if (storedToken) {
@@ -321,9 +323,6 @@ const ListTokenPage = ({
               tokenName={tokenData.tokenName}
             />
           )}
-          <button onClick={handleTx}>
-            Done
-          </button>
         </div>
       </div>
     </section>

@@ -171,3 +171,52 @@ export async function addTokenPersonality(
     };
   }
 }
+
+
+export async function addTokenContract(
+  authToken: string,
+  aiTokenId: number,
+  contractAddress: string,
+) {
+  try {
+    const response = await axios.post(
+      `${import.meta.env.VITE_API_URL}/agent/add-token-contract`,
+      {
+        aiTokenId,
+        contractAddress
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      }
+    );
+
+    if (response.status === 201) {
+      return {
+        message: aiTokenId,
+        errorType: null,
+        statusCode: response.status,
+      };
+    } else {
+      return {
+        message: "something went wrong!",
+        errorType: "danger",
+        statusCode: response.status,
+      };
+    }
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      const { message, error: errType, statusCode } = error.response.data;
+      console.error(`Error ${statusCode}: ${message} (${errType})`);
+      return { message, error: errType, statusCode };
+    } else {
+      console.error("Unexpected error:", error);
+    }
+    return {
+      message: "Something went wrong!",
+      error: "danger",
+      statusCode: 404,
+    };
+  }
+}
