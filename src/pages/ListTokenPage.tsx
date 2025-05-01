@@ -9,10 +9,7 @@ import { TokenData } from "../types";
 import AgentConfigurationPopup from "../components/AgentConfigurationPopup";
 import { useAtom } from "jotai";
 import { tokenDataAtom } from "../atoms";
-import { useBlockNumber, useContractRead, useReadContract, useWatchContractEvent, useWriteContract } from "wagmi";
-import { createPublicClient, http, parseEther } from "viem";
-import { ABI } from "../../abi";
-import { celoAlfajores } from "viem/chains";
+// import { useWriteContract } from "wagmi";
 
 interface ListTokenPageProps {
   tokenData: TokenData | null;
@@ -57,7 +54,7 @@ const ListTokenPage = ({
   const { toast } = useToast();
   const [authToken, setAuthToken] = useState<string>();
   const [, setContractTokenData] = useAtom(tokenDataAtom);
-  const { writeContractAsync } = useWriteContract();
+  // const { writeContractAsync } = useWriteContract();
 
 
   // useWatchContractEvent({

@@ -14,8 +14,6 @@ import {
   sendMessage as socketSendMessage,
   likeStream as socketLikeStream,
   disconnectSocket,
-  isSocketConnected,
-  onEvent,
 } from "../components/stream/socketConnection";
 import { Socket } from "socket.io-client";
 import { usePrivy } from "@privy-io/react-auth";
@@ -31,13 +29,12 @@ const LiveStreamPage: React.FC = () => {
   const [viewerCount, setViewerCount] = useState<number>(0);
   const [likeCount, setLikeCount] = useState<number>(0);
   const [hasLiked, setHasLiked] = useState<boolean>(false);
-  const [showEvent, setShowEvent] = useState<boolean>(false);
+  const [showEvent,] = useState<boolean>(false);
   const [isLive, setIsLive] = useState<boolean>(true);
   const [socketConnected, setSocketConnected] = useState<boolean>(false);
   const socketRef = useRef<Socket | null>(null);
   const { toast } = useToast();
   const [buyModalVisible, setBuyModalVisible] = useState<boolean>();
-  const [setModalVisible, setSellModalVisible] = useState();
 
   const handleBuy = {};
   const { user } = usePrivy();
@@ -99,40 +96,40 @@ const LiveStreamPage: React.FC = () => {
     };
 
     // Handle stream history
-    const handleStreamHistory = (data: {
-      streamId: string;
-      messages: Array<{
-        id?: string;
-        username: string;
-        message: string;
-        timestamp: string;
-      }>;
-    }) => {
-      const historyMessages: Message[] = data.messages.map((msg) => ({
-        id: `history-${msg.id || Date.now() + Math.random()}`,
-        user: msg.username,
-        text: msg.message,
-        timestamp: new Date(msg.timestamp),
-        isAI: msg.username === tokenInfo?.agentDisplay?.agentName,
-        isCurrentUser: false,
-      }));
+    // const handleStreamHistory = (data: {
+    //   streamId: string;
+    //   messages: Array<{
+    //     id?: string;
+    //     username: string;
+    //     message: string;
+    //     timestamp: string;
+    //   }>;
+    // }) => {
+    //   const historyMessages: Message[] = data.messages.map((msg) => ({
+    //     id: `history-${msg.id || Date.now() + Math.random()}`,
+    //     user: msg.username,
+    //     text: msg.message,
+    //     timestamp: new Date(msg.timestamp),
+    //     isAI: msg.username === tokenInfo?.agentDisplay?.agentName,
+    //     isCurrentUser: false,
+    //   }));
 
-      if (historyMessages.length > 0) {
-        setMessages((prev) => {
-          // Only add history messages if they don't already exist
-          const existingIds = new Set(prev.map((msg) => msg.id));
-          const newHistoryMessages = historyMessages.filter(
-            (msg) => !existingIds.has(msg.id)
-          );
-          return [...prev, ...newHistoryMessages];
-        });
-      }
-    };
+    //   if (historyMessages.length > 0) {
+    //     setMessages((prev) => {
+    //       // Only add history messages if they don't already exist
+    //       const existingIds = new Set(prev.map((msg) => msg.id));
+    //       const newHistoryMessages = historyMessages.filter(
+    //         (msg) => !existingIds.has(msg.id)
+    //       );
+    //       return [...prev, ...newHistoryMessages];
+    //     });
+    //   }
+    // };
 
-    // Handle viewer count updates
-    const handleViewerCount = (count: number) => {
-      setViewerCount(count);
-    };
+    // // Handle viewer count updates
+    // const handleViewerCount = (count: number) => {
+    //   setViewerCount(count);
+    // };
 
     // Register event handlers using our custom function
     // onEvent("newMessage", handleNewMessage);
@@ -206,6 +203,7 @@ const LiveStreamPage: React.FC = () => {
           launchDate: "2023-04-15",
           allTimeHigh: 0.0000189,
           allTimeHighDate: "2023-07-12",
+          
         };
 
         setTimeout(() => {
@@ -548,9 +546,9 @@ const LiveStreamPage: React.FC = () => {
       {buyModalVisible && tokenInfo && (
         <BuyModal
           isOpen={buyModalVisible}
-          onBuy={handleBuy}
+          onBuy={handleBuy as any}
           onClose={() => setBuyModalVisible(false)}
-          tokenInfo={tokenInfo}
+          tokenInfo={tokenInfo as any}
         />
       )}
     </div>
